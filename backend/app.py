@@ -341,7 +341,19 @@ def admin_login():
         admin_id = (data.get('adminId') or '').strip()
         admin_password = data.get('adminPassword') or ''
 
-        if admin_id != ADMIN_USERNAME or admin_password != ADMIN_PASSWORD:
+        # Query Supabase for admin
+        response = supabase_request(
+            method='GET',
+            path='admins',
+            params={'username': f'eq.{admin_id}'},
+        )
+
+        if not response:
+            return jsonify({'message': 'Invalid credentials'}), 401
+
+        admin = response[0]
+        # Check password hash
+        if not check_password_hash(admin['password'], admin_password):
             return jsonify({'message': 'Invalid credentials'}), 401
 
         token = create_admin_token()
