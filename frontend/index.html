@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Management System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">Complaint Portal</h1>
+            <div class="nav-buttons">
+                <span id="welcomeUser" class="hidden"
+                    style="margin-right: 15px; font-weight: bold; color: white;"></span>
+                <button id="userAuthBtn" class="admin-btn">Login / Register</button>
+                <button id="userLogoutBtn" class="admin-btn hidden">Logout</button>
+                <button id="adminBtn" class="admin-btn">Admin Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Admin Login Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content glass-panel admin-glass">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <div class="admin-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                </div>
+                <h2>Admin Access</h2>
+                <p>Secure portal for authorized personnel</p>
+            </div>
+            <form id="adminLoginForm" class="premium-form">
+                <div class="input-wrapper">
+                    <input type="text" id="adminId" placeholder="Admin ID (e.g. sathiofficial)" required>
+                </div>
+                <div class="input-wrapper">
+                    <input type="password" id="adminPassword" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary gradient-btn">Authenticate</button>
+            </form>
+            <div id="adminMessage"></div>
+        </div>
+    </div>
+
+    <!-- User Auth Modal -->
+    <div id="userAuthModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="userAuthClose">&times;</span>
+            <div class="auth-tabs">
+                <button id="tabLogin" class="tab-btn active">Login</button>
+                <button id="tabRegister" class="tab-btn">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="userLoginForm" class="auth-form">
+                <input type="email" id="loginEmail" placeholder="Email Address" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="userRegisterForm" class="auth-form hidden">
+                <input type="text" id="regName" placeholder="Full Name" required>
+                <input type="email" id="regEmail" placeholder="Email Address" required>
+                <input type="password" id="regPassword" placeholder="Password" required>
+                <button type="submit" class="btn-primary">Register</button>
+            </form>
+
+            <div id="userAuthMessage"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container main-container">
+        <!-- Public Complaint Section -->
+        <section id="publicSection" class="section">
+            <h2>Submit New Complaint</h2>
+            <form id="complaintForm" class="complaint-form">
+                <div class="form-group">
+                    <label for="name">Name *</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Subject / Complaint Type *</label>
+                    <input type="text" id="subject" placeholder="e.g. Descibe your problem title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Complaint Description *</label>
+                    <textarea id="description" rows="5" placeholder="e.g. Descibe your problem in details"
+                        required></textarea>
+                </div>
+                <button type="submit" id="submitComplaintBtn" class="btn-primary" disabled>Login to Submit
+                    Complaint</button>
+            </form>
+            <div id="submitAuthWarning" style="color: red; margin-top: 10px;">Please login to submit a complaint.</div>
+            <div id="successMessage" class="message"></div>
+        </section>
+
+        <!-- My Complaints Section (Visible only when logged in) -->
+        <section id="myComplaintsSection" class="section hidden">
+            <h2>My Complaints</h2>
+            <div id="myComplaintsList" class="complaints-list"></div>
+        </section>
+
+        <!-- Track Complaint Section -->
+        <section class="section">
+            <h2>Track Your Complaint</h2>
+            <div class="track-form">
+                <input type="text" id="tokenInput" placeholder="Enter your complaint token" maxlength="20">
+                <button onclick="trackComplaint()" class="btn-primary">Track</button>
+            </div>
+            <div id="complaintDetails" class="complaint-details hidden">
+                <h3>Complaint Details</h3>
+                <div id="detailsContent"></div>
+            </div>
+        </section>
+
+        <!-- All Complaints (Universal View) -->
+        <section class="section">
+            <h2>All Complaints (Universal Stacking)</h2>
+            <div id="allComplaints" class="complaints-list"></div>
+        </section>
+    </div>
+
+    <!-- Admin Dashboard (Hidden) -->
+    <div id="adminDashboard" class="admin-section hidden">
+        <div class="container">
+            <div class="admin-header">
+                <h2>Admin Dashboard</h2>
+                <button onclick="adminLogout()" class="btn-logout">Logout</button>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalComplaints">0</h3>
+                    <p>Total Complaints</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="pendingComplaints">0</h3>
+                    <p>Pending</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="resolvedComplaints">0</h3>
+                    <p>Resolved</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="inProgressComplaints">0</h3>
+                    <p>In Progress</p>
+                </div>
+            </div>
+
+            <!-- All Complaints Table -->
+            <div class="admin-table-section">
+                <h3>All Complaints</h3>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Name</th>
+                            <th>Subject/Type</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminComplaintsTable"></tbody>
+                </table>
+            </div>
+
+            <!-- Edit Complaint Modal -->
+            <div id="editModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeEditModal()">&times;</span>
+                    <h2>Update Complaint</h2>
+                    <form id="editComplaintForm">
+                        <div class="form-group">
+                            <label for="editStatus">Status *</label>
+                            <select id="editStatus" required>
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editReply">Reply/Notes *</label>
+                            <textarea id="editReply" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">Update</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View Complaint Modal -->
+            <div id="viewModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeViewModal()">&times;</span>
+                    <h2>Complaint Details</h2>
+                    <div id="viewDetailsContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Complaint Management System. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

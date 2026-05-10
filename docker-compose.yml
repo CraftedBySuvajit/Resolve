@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  complaint-backend:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=True
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    volumes:
+      - ./backend:/app
+    command: python app.py
+
+  # Optional: Nginx for serving frontend
+  # complaint-frontend:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "8000:80"
+  #   volumes:
+  #     - ./frontend:/usr/share/nginx/html
+  #   depends_on:
+  #     - complaint-backend
