@@ -20,9 +20,9 @@ CORS(app)
 load_dotenv()
 
 # Supabase Configuration
-SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://sqczmoskzhbxlnsnlavn.supabase.co')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'sb_publishable_0UGYjHYW1dFzgHzF39h4BA_L_TupW5A')
-SUPABASE_REST_URL = f"{SUPABASE_URL}/rest/v1"
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+SUPABASE_REST_URL = f"{SUPABASE_URL}/rest/v1" if SUPABASE_URL else None
 
 ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'sathiofficial')
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'sathi/admin')

@@ -2,8 +2,6 @@
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:5000/api' 
     : '/api';
-const SUPABASE_URL = 'https://sqczmoskzhbxlnsnlavn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_0UGYjHYW1dFzgHzF39h4BA_L_TupW5A';
 
 // State Management
 let currentAdminToken = null;
