@@ -24,8 +24,8 @@ SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 SUPABASE_REST_URL = f"{SUPABASE_URL}/rest/v1" if SUPABASE_URL else None
 
-ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'sathiofficial')
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'sathi/admin')
+ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
 ADMIN_TOKEN_TTL_SECONDS = int(os.getenv('ADMIN_TOKEN_TTL_SECONDS', '43200'))
 USER_TOKEN_TTL_SECONDS = 43200
 SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key-here-change-in-production')

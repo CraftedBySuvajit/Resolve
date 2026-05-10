@@ -11,8 +11,8 @@ import requests
 load_dotenv()
 
 # Supabase Configuration
-SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://sqczmoskzhbxlnsnlavn.supabase.co')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'sb_publishable_0UGYjHYW1dFzgHzF39h4BA_L_TupW5A')
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 
 print("=" * 70)
 print("SUPABASE CONNECTION TEST")

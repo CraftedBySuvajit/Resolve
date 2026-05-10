@@ -5,11 +5,14 @@ Run: python create_tables.py
 """
 
 import os
+from dotenv import load_dotenv
 from supabase import create_client, Client
 
-# Supabase Configuration (already configured from your project)
-SUPABASE_URL = 'https://sqczmoskzhbxlnsnlavn.supabase.co'
-SUPABASE_KEY = 'sb_publishable_0UGYjHYW1dFzgHzF39h4BA_L_TupW5A'
+load_dotenv()
+
+# Supabase Configuration
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 
 print("=" * 80)
 print("SUPABASE DATABASE MIGRATION")
