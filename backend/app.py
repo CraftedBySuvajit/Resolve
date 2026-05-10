@@ -10,6 +10,7 @@ import string
 import random
 import secrets
 from functools import wraps
+import jwt
 
 # Initialize Flask
 app = Flask(__name__)
@@ -27,6 +28,9 @@ ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'sathiofficial')
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'sathi/admin')
 ADMIN_TOKEN_TTL_SECONDS = int(os.getenv('ADMIN_TOKEN_TTL_SECONDS', '43200'))
 USER_TOKEN_TTL_SECONDS = 43200
+SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key-here-change-in-production')
+
+# In-memory stores removed for stateless JWT
 
 active_admin_tokens = {}
 active_user_tokens = {}
@@ -61,22 +65,31 @@ def supabase_request(method, path, params=None, payload=None, prefer_return=Fals
 
 
 def create_admin_token():
-    token = secrets.token_urlsafe(32)
-    expires_at = datetime.now().timestamp() + ADMIN_TOKEN_TTL_SECONDS
-    active_admin_tokens[token] = expires_at
-    return token
+    payload = {
+        'role': 'admin',
+        'exp': datetime.now().timestamp() + ADMIN_TOKEN_TTL_SECONDS
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
 
 def is_valid_admin_token(token):
-    if not token:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        return payload.get('role') == 'admin'
+    except jwt.ExpiredSignatureError:
         return False
-    expires_at = active_admin_tokens.get(token)
-    if not expires_at:
+    except jwt.InvalidTokenError:
         return False
-    if datetime.now().timestamp() > expires_at:
-        active_admin_tokens.pop(token, None)
-        return False
-    return True
+
+
+def create_user_token(user_id, name, email):
+    payload = {
+        'id': user_id,
+        'name': name,
+        'email': email,
+        'exp': datetime.now().timestamp() + USER_TOKEN_TTL_SECONDS
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
 
 def require_admin_auth(fn):
@@ -94,6 +107,7 @@ def require_admin_auth(fn):
 
     return wrapper
 
+
 def require_user_auth(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -102,17 +116,14 @@ def require_user_auth(fn):
             return jsonify({'message': 'Unauthorized: Missing or invalid token'}), 401
 
         token = auth_header.split(' ', 1)[1].strip()
-        user_info = active_user_tokens.get(token)
-        if not user_info:
-            return jsonify({'message': 'Unauthorized: Token invalid or expired'}), 401
-            
-        if datetime.now().timestamp() > user_info['expires_at']:
-            active_user_tokens.pop(token, None)
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            request.user = payload
+            return fn(*args, **kwargs)
+        except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Unauthorized: Token expired'}), 401
-            
-        # Attach user to request
-        request.user = user_info
-        return fn(*args, **kwargs)
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Unauthorized: Token invalid'}), 401
 
     return wrapper
 
@@ -194,13 +205,7 @@ def login_user():
         if not check_password_hash(user['password'], password):
             return jsonify({'message': 'Invalid email or password'}), 401
             
-        token = secrets.token_urlsafe(32)
-        active_user_tokens[token] = {
-            'id': user['id'],
-            'name': user['name'],
-            'email': user['email'],
-            'expires_at': datetime.now().timestamp() + USER_TOKEN_TTL_SECONDS
-        }
+        token = create_user_token(user['id'], user['name'], user['email'])
         
         return jsonify({
             'message': 'Login successful',
