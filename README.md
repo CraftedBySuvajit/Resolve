@@ -49,8 +49,6 @@ A secure, user-centric web platform for submitting and managing complaints.
 
 ---
 
----
-
 ## 📂 Project Structure
 - `frontend/`: Contains HTML, CSS, and JS files.
 - `backend/`: Contains Flask application and test scripts.

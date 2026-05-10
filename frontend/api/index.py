@@ -82,11 +82,12 @@ def is_valid_admin_token(token):
         return False
 
 
-def create_user_token(user_id, name, email):
+def create_user_token(user_id, name, email, phone):
     payload = {
         'id': user_id,
         'name': name,
         'email': email,
+        'phone': phone,
         'exp': datetime.now().timestamp() + USER_TOKEN_TTL_SECONDS
     }
     return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
@@ -166,9 +167,9 @@ def register_user():
     """Register a new user"""
     try:
         data = request.json
-        required_fields = ['name', 'email', 'password']
+        required_fields = ['name', 'email', 'password', 'phone']
         if not all(field in data for field in required_fields):
-            return jsonify({'message': 'Missing required fields: name, email, password'}), 400
+            return jsonify({'message': 'Missing required fields: name, email, password, phone'}), 400
             
         # Check if email exists
         existing = supabase_request(method='GET', path='users', params={'email': f"eq.{data['email']}"})
@@ -178,6 +179,7 @@ def register_user():
         user_data = {
             'name': data['name'],
             'email': data['email'],
+            'phone': data['phone'],
             'password': generate_password_hash(data['password']),
             'created_at': datetime.now().isoformat()
         }
@@ -205,12 +207,12 @@ def login_user():
         if not check_password_hash(user['password'], password):
             return jsonify({'message': 'Invalid email or password'}), 401
             
-        token = create_user_token(user['id'], user['name'], user['email'])
+        token = create_user_token(user['id'], user['name'], user['email'], user.get('phone', ''))
         
         return jsonify({
             'message': 'Login successful',
             'token': token,
-            'user': {'id': user['id'], 'name': user['name'], 'email': user['email']}
+            'user': {'id': user['id'], 'name': user['name'], 'email': user['email'], 'phone': user.get('phone', '')}
         }), 200
     except Exception as e:
         return jsonify({'message': f'Error: {str(e)}'}), 500
@@ -223,7 +225,7 @@ def create_complaint():
         data = request.json
         
         # Validate required fields
-        required_fields = ['name', 'email', 'phone', 'subject', 'description']
+        required_fields = ['subject', 'description']
         if not all(field in data for field in required_fields):
             return jsonify({'message': 'Missing required fields'}), 400
 
@@ -234,9 +236,9 @@ def create_complaint():
         complaint = {
             'user_id': request.user['id'],
             'token': token,
-            'name': data['name'],
-            'email': data['email'],
-            'phone': data['phone'],
+            'name': request.user['name'],
+            'email': request.user['email'],
+            'phone': request.user.get('phone', ''),
             'subject': data['subject'],
             'description': data['description'],
             'status': 'pending',

@@ -9,12 +9,13 @@ let currentUserToken = null;
 let currentUser = null;
 let currentEditingComplaintId = null;
 let currentComplaints = []; // Store complaints for admin view
+let currentUserComplaints = []; // Store user's complaints
+let currentComplaintTab = 'active'; // 'active' or 'resolved'
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     updateUserUI();
-    loadAllComplaints();
     setupAdminModal();
 });
 
@@ -40,6 +41,10 @@ function setupEventListeners() {
     // Auth Tabs
     document.getElementById('tabLogin').addEventListener('click', () => switchAuthTab('login'));
     document.getElementById('tabRegister').addEventListener('click', () => switchAuthTab('register'));
+    
+    // Complaint Tabs
+    document.getElementById('tabActiveComplaints').addEventListener('click', () => switchComplaintTab('active'));
+    document.getElementById('tabResolvedComplaints').addEventListener('click', () => switchComplaintTab('resolved'));
     
     // Auth Forms
     document.getElementById('userLoginForm').addEventListener('submit', userLogin);
@@ -82,9 +87,6 @@ async function submitComplaint(e) {
     }
 
     const formData = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
         subject: document.getElementById('subject').value,
         description: document.getElementById('description').value,
         status: 'pending',
@@ -111,7 +113,6 @@ async function submitComplaint(e) {
                 'success'
             );
             document.getElementById('complaintForm').reset();
-            loadAllComplaints();
             loadMyComplaints();
         } else {
             showMessage('Error submitting complaint: ' + data.message, 'error');
@@ -196,34 +197,7 @@ function displayComplaintDetails(complaint) {
     document.getElementById('complaintDetails').classList.remove('hidden');
 }
 
-// Load all complaints (public view / universal stacking)
-async function loadAllComplaints() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/complaints/all`);
-        const complaints = await response.json();
 
-        let html = '';
-        if (!complaints || complaints.length === 0) {
-            html = '<p style="text-align: center; color: var(--light-text);">No complaints found.</p>';
-        } else {
-            complaints.forEach(complaint => {
-                html += `
-                    <div class="complaint-card" onclick="trackComplaint_fromCard('${complaint.token}')">
-                        <h4>${(complaint.subject || '').toUpperCase()}</h4>
-                        <p><strong>${complaint.name}</strong></p>
-                        <p>${complaint.description.substring(0, 100)}...</p>
-                        <span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span>
-                        <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #999;">Token: ${complaint.token}</p>
-                    </div>
-                `;
-            });
-        }
-
-        document.getElementById('allComplaints').innerHTML = html;
-    } catch (error) {
-        console.error('Error loading complaints:', error);
-    }
-}
 
 // Load my complaints
 async function loadMyComplaints() {
@@ -235,26 +209,87 @@ async function loadMyComplaints() {
             }
         });
         const complaints = await response.json();
-
-        let html = '';
-        if (!complaints || complaints.length === 0) {
-            html = '<p style="text-align: center; color: var(--light-text);">You have not submitted any complaints yet.</p>';
-        } else {
-            complaints.forEach(complaint => {
-                html += `
-                    <div class="complaint-card" onclick="trackComplaint_fromCard('${complaint.token}')">
-                        <h4>${(complaint.subject || '').toUpperCase()}</h4>
-                        <p>${complaint.description.substring(0, 100)}...</p>
-                        <span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span>
-                        <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #999;">Token: ${complaint.token}</p>
-                    </div>
-                `;
-            });
-        }
-        document.getElementById('myComplaintsList').innerHTML = html;
+        currentUserComplaints = complaints; // Store globally
+        renderUserComplaints();
     } catch (error) {
         console.error('Error loading my complaints:', error);
     }
+}
+
+function renderUserComplaints() {
+    let html = '';
+    const filteredComplaints = currentUserComplaints.filter(complaint => {
+        if (currentComplaintTab === 'active') {
+            return complaint.status === 'pending' || complaint.status === 'in_progress';
+        } else {
+            return complaint.status === 'resolved';
+        }
+    });
+
+    if (!filteredComplaints || filteredComplaints.length === 0) {
+        html = `<p style="text-align: center; color: var(--light-text);">No ${currentComplaintTab} complaints found.</p>`;
+    } else {
+        filteredComplaints.forEach(complaint => {
+            html += `
+                <div class="complaint-card" onclick="openUserComplaintModal('${complaint.token}')">
+                    <h4>${(complaint.subject || '').toUpperCase()}</h4>
+                    <p>${complaint.description.substring(0, 100)}...</p>
+                    <span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span>
+                    <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #999;">Token: ${complaint.token}</p>
+                </div>
+            `;
+        });
+    }
+    document.getElementById('myComplaintsList').innerHTML = html;
+}
+
+function openUserComplaintModal(token) {
+    const complaint = currentUserComplaints.find(c => c.token === token);
+    if (!complaint) return;
+
+    const detailsHtml = `
+        <div class="detail-item">
+            <div class="detail-label">Token:</div>
+            <div class="detail-value"><strong>${complaint.token}</strong></div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Subject:</div>
+            <div class="detail-value">${complaint.subject}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Status:</div>
+            <div class="detail-value">
+                <span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span>
+            </div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Description:</div>
+            <div class="detail-value">${complaint.description}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Reply:</div>
+            <div class="detail-value">${complaint.reply || 'No reply yet'}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Submitted:</div>
+            <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
+        </div>
+    `;
+
+    document.getElementById('viewDetailsContent').innerHTML = detailsHtml;
+    document.getElementById('viewModal').classList.add('show');
+}
+
+function switchComplaintTab(tab) {
+    currentComplaintTab = tab;
+    if (tab === 'active') {
+        document.getElementById('tabActiveComplaints').classList.add('active');
+        document.getElementById('tabResolvedComplaints').classList.remove('active');
+    } else {
+        document.getElementById('tabResolvedComplaints').classList.add('active');
+        document.getElementById('tabActiveComplaints').classList.remove('active');
+    }
+    renderUserComplaints();
 }
 
 async function userLogin(e) {
@@ -290,13 +325,14 @@ async function userRegister(e) {
     e.preventDefault();
     const name = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
+    const phone = document.getElementById('regPhone').value;
     const password = document.getElementById('regPassword').value;
     
     try {
         const res = await fetch(`${API_BASE_URL}/register`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name, email, password})
+            body: JSON.stringify({name, email, password, phone})
         });
         const data = await res.json();
         
@@ -326,6 +362,7 @@ function updateUserUI() {
     const myComplaints = document.getElementById('myComplaintsSection');
     const submitBtn = document.getElementById('submitComplaintBtn');
     const submitWarning = document.getElementById('submitAuthWarning');
+    const publicSection = document.getElementById('publicSection');
     
     if (currentUser) {
         welcome.textContent = `Welcome, ${currentUser.name}`;
@@ -333,6 +370,7 @@ function updateUserUI() {
         authBtn.classList.add('hidden');
         logoutBtn.classList.remove('hidden');
         myComplaints.classList.remove('hidden');
+        publicSection.classList.remove('hidden');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Complaint';
         submitWarning.classList.add('hidden');
@@ -341,6 +379,7 @@ function updateUserUI() {
         authBtn.classList.remove('hidden');
         logoutBtn.classList.add('hidden');
         myComplaints.classList.add('hidden');
+        publicSection.classList.add('hidden');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Login to Submit Complaint';
         submitWarning.classList.remove('hidden');
@@ -435,7 +474,6 @@ function adminLogout() {
     currentAdminToken = null;
     document.getElementById('adminDashboard').classList.add('hidden');
     document.querySelector('.main-container').classList.remove('hidden');
-    loadAllComplaints();
 }
 
 // Load all complaints for admin
