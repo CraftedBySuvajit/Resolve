@@ -49,12 +49,6 @@ A secure, user-centric web platform for submitting and managing complaints.
 
 ---
 
-## 🔐 Credentials
-
-### Admin Login
-- **ID**: `sathiofficial`
-- **Password**: `sathi/admin`
-
 ---
 
 ## 📂 Project Structure
@@ -62,3 +56,5 @@ A secure, user-centric web platform for submitting and managing complaints.
 - `backend/`: Contains Flask application and test scripts.
 - `SQL_COPY_PASTE.sql`: Database schema setup script.
 - `.env`: Environment variables (Keep this private).
+
+<!-- Deployment trigger -->
