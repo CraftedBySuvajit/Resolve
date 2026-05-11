@@ -507,7 +507,8 @@ function userLogout() {
 function updateUserUI() {
     const welcome = document.getElementById('welcomeUser');
     const authBtn = document.getElementById('userAuthBtn');
-    const logoutBtn = document.getElementById('userLogoutBtn');
+    const userLogoutBtn = document.getElementById('userLogoutBtn');
+    const adminLogoutBtn = document.getElementById('adminLogoutBtn');
     const profileBtn = document.getElementById('userProfileBtn');
     const myComplaints = document.getElementById('myComplaintsSection');
     const submitBtn = document.getElementById('submitComplaintBtn');
@@ -516,11 +517,25 @@ function updateUserUI() {
     const adminBtn = document.getElementById('adminBtn');
     const howItWorks = document.getElementById('howItWorksSection');
     
-    if (currentUser) {
+    if (currentAdminToken) {
+        // Admin logged in
+        welcome.textContent = `Welcome, Admin`;
+        welcome.classList.remove('hidden');
+        authBtn.classList.add('hidden');
+        userLogoutBtn.classList.add('hidden');
+        if(adminLogoutBtn) adminLogoutBtn.classList.remove('hidden');
+        if(profileBtn) profileBtn.classList.add('hidden');
+        myComplaints.classList.add('hidden');
+        publicSection.classList.add('hidden');
+        if(adminBtn) adminBtn.classList.add('hidden');
+        if(howItWorks) howItWorks.classList.add('hidden');
+    } else if (currentUser) {
+        // User logged in
         welcome.textContent = `Welcome, ${currentUser.name}`;
         welcome.classList.remove('hidden');
         authBtn.classList.add('hidden');
-        logoutBtn.classList.remove('hidden');
+        userLogoutBtn.classList.remove('hidden');
+        if(adminLogoutBtn) adminLogoutBtn.classList.add('hidden');
         if(profileBtn) profileBtn.classList.remove('hidden');
         myComplaints.classList.remove('hidden');
         publicSection.classList.remove('hidden');
@@ -530,9 +545,11 @@ function updateUserUI() {
         if(adminBtn) adminBtn.classList.add('hidden');
         if(howItWorks) howItWorks.classList.add('hidden');
     } else {
+        // Guest
         welcome.classList.add('hidden');
         authBtn.classList.remove('hidden');
-        logoutBtn.classList.add('hidden');
+        userLogoutBtn.classList.add('hidden');
+        if(adminLogoutBtn) adminLogoutBtn.classList.add('hidden');
         if(profileBtn) profileBtn.classList.add('hidden');
         myComplaints.classList.add('hidden');
         publicSection.classList.add('hidden');
@@ -676,9 +693,7 @@ async function adminLogin(e) {
 function showAdminDashboard() {
     document.querySelector('.main-container').classList.add('hidden');
     document.getElementById('adminDashboard').classList.remove('hidden');
-    // Hide standard navbar buttons
-    document.getElementById('userAuthBtn').classList.add('hidden');
-    document.getElementById('adminBtn').classList.add('hidden');
+    updateUserUI();
 }
 
 // Admin logout
@@ -689,6 +704,33 @@ function adminLogout() {
     document.getElementById('adminDashboard').classList.add('hidden');
     document.querySelector('.main-container').classList.remove('hidden');
     updateUserUI(); // Restore button visibility based on user login state
+}
+
+// Admin Tab Switching
+let currentAdminTab = 'activeComplaints';
+
+function switchAdminTab(tab) {
+    currentAdminTab = tab;
+    // Update button styles
+    const buttons = document.querySelectorAll('.admin-tab-btn');
+    buttons.forEach(btn => btn.style.border = 'none');
+    if(event && event.currentTarget) {
+        event.currentTarget.style.border = '2px solid white';
+    }
+
+    // Hide all sections
+    document.getElementById('adminActiveComplaintsSection').classList.add('hidden');
+    document.getElementById('adminResolvedComplaintsSection').classList.add('hidden');
+    document.getElementById('adminUsersSection').classList.add('hidden');
+
+    // Show active section
+    if (tab === 'activeComplaints') {
+        document.getElementById('adminActiveComplaintsSection').classList.remove('hidden');
+    } else if (tab === 'resolvedComplaints') {
+        document.getElementById('adminResolvedComplaintsSection').classList.remove('hidden');
+    } else if (tab === 'users') {
+        document.getElementById('adminUsersSection').classList.remove('hidden');
+    }
 }
 
 // Load all complaints for admin
@@ -724,27 +766,34 @@ async function loadAdminComplaints() {
         document.getElementById('resolvedComplaints').textContent = stats.resolved;
 
         // Build table
-        let tableHtml = '';
+        let activeHtml = '';
+        let resolvedHtml = '';
         complaints.forEach(complaint => {
-            tableHtml += `
+            const htmlRow = `
                 <tr>
                     <td><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">Copy</button></td>
                     <td>${complaint.name}</td>
                     <td>${complaint.subject || ''}</td>
-                    <td><span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ')}</span></td>
+                    <td><span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span></td>
                     <td>${new Date(complaint.created_at).toLocaleDateString()}</td>
                     <td>
                         <div class="action-buttons">
                             <button class="btn-view" onclick="openViewModal(${complaint.id})">View</button>
-                            <button class="btn-edit" onclick="openEditModal(${complaint.id}, '${complaint.status}', '${complaint.reply || ''}')">Reply</button>
+                            ${complaint.status !== 'resolved' ? `<button class="btn-edit" onclick="openEditModal(${complaint.id}, '${complaint.status}', '${complaint.reply || ''}')">Update</button>` : ''}
                             <button class="btn-delete" onclick="deleteComplaint(${complaint.id})">Delete</button>
                         </div>
                     </td>
                 </tr>
             `;
+            if (complaint.status === 'resolved') {
+                resolvedHtml += htmlRow;
+            } else {
+                activeHtml += htmlRow;
+            }
         });
 
-        document.getElementById('adminComplaintsTable').innerHTML = tableHtml;
+        document.getElementById('adminActiveComplaintsTable').innerHTML = activeHtml;
+        document.getElementById('adminResolvedComplaintsTable').innerHTML = resolvedHtml;
     } catch (error) {
         console.error('Error loading admin complaints:', error);
     } finally {
@@ -925,7 +974,7 @@ async function loadAdminUsers() {
                         <td>${u.phone || 'N/A'}</td>
                         <td>${new Date(u.created_at).toLocaleDateString()}</td>
                         <td>
-                            <button class="btn-edit" onclick="openEditUserModal(${u.id})">Edit</button>
+                            <button class="btn-primary" style="background: #ef4444; padding: 6px 16px; font-size: 0.85rem;" onclick="openEditUserModal(${u.id})">Action</button>
                         </td>
                     </tr>
                 `;
@@ -943,15 +992,70 @@ function openEditUserModal(userId) {
     const user = currentAdminUsers.find(u => u.id === userId);
     if (!user) return;
     currentEditingUserId = userId;
+    
+    // Set display info
+    document.getElementById('viewUserId').textContent = user.id;
+    document.getElementById('viewUserJoined').textContent = new Date(user.created_at).toLocaleString();
+
+    // Set editable info
     document.getElementById('editUserName').value = user.name;
     document.getElementById('editUserEmail').value = user.email;
     document.getElementById('editUserPhone').value = user.phone || '';
+    
     document.getElementById('editUserModal').classList.add('show');
 }
 
 function closeEditUserModal() {
     document.getElementById('editUserModal').classList.remove('show');
     currentEditingUserId = null;
+}
+
+async function blockUser(userId) {
+    if (!confirm("Are you sure you want to block this user? They will not be able to log in anymore.")) return;
+    showLoading();
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/block`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${currentAdminToken}` }
+        });
+        if (response.ok) {
+            alert('User blocked successfully.');
+            closeEditUserModal();
+            await loadAdminUsers();
+        } else {
+            const data = await response.json();
+            alert(data.message || 'Error blocking user');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Error blocking user');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function deleteUser(userId) {
+    if (!confirm("Are you sure you want to permanently delete this user?")) return;
+    showLoading();
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${currentAdminToken}` }
+        });
+        if (response.ok) {
+            alert('User deleted successfully.');
+            closeEditUserModal();
+            await loadAdminUsers();
+        } else {
+            const data = await response.json();
+            alert(data.message || 'Error deleting user');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Error deleting user');
+    } finally {
+        hideLoading();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

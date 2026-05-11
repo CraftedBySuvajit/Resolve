@@ -439,6 +439,36 @@ def update_admin_user_data(user_id):
     except Exception as e:
         return jsonify({'message': f'Error: {str(e)}'}), 500
 
+@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+@require_admin_auth
+def delete_admin_user(user_id):
+    """Delete a user (admin only)"""
+    try:
+        supabase_request(
+            method='DELETE',
+            path='users',
+            params={'id': f'eq.{user_id}'},
+        )
+        return jsonify({'message': 'User deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
+
+@app.route('/api/admin/users/<int:user_id>/block', methods=['PUT'])
+@require_admin_auth
+def block_admin_user(user_id):
+    """Block a user by invalidating their password (admin only)"""
+    try:
+        supabase_request(
+            method='PATCH',
+            path='users',
+            params={'id': f'eq.{user_id}'},
+            payload={'password': 'BLOCKED_USER'},
+            prefer_return=True,
+        )
+        return jsonify({'message': 'User blocked successfully'}), 200
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
+
 
 @app.route('/api/admin/complaints/<int:complaint_id>', methods=['PUT'])
 @require_admin_auth
