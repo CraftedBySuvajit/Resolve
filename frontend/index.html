@@ -224,63 +224,69 @@
 
             <!-- Admin Tabs -->
             <div class="admin-tabs-container">
-                <button class="btn-primary tab-btn admin-tab-btn active" onclick="switchAdminTab('activeComplaints')" style="border-radius: 8px; background: var(--primary-color);">All Complaints</button>
-                <button class="btn-primary tab-btn admin-tab-btn" onclick="switchAdminTab('users')" style="border-radius: 8px; background: #6366f1;">User Management</button>
-                <button class="btn-primary tab-btn admin-tab-btn" onclick="switchAdminTab('resolvedComplaints')" style="border-radius: 8px; background: #10b981;">Solved Problems</button>
+                <button class="btn-primary admin-tab-btn active" onclick="switchAdminTab('activeComplaints')" style="border-radius: 8px; background: var(--primary-color); color: white;">All Complaints</button>
+                <button class="btn-primary admin-tab-btn" onclick="switchAdminTab('users')" style="border-radius: 8px; background: #6366f1; color: white;">User Management</button>
+                <button class="btn-primary admin-tab-btn" onclick="switchAdminTab('resolvedComplaints')" style="border-radius: 8px; background: #10b981; color: white;">Solved Problems</button>
             </div>
 
             <!-- Active Complaints Section -->
-            <div id="adminActiveComplaintsSection" class="admin-view-section">
+            <div id="adminActiveComplaintsSection" class="admin-table-section">
                 <h3>Active Complaints (Pending & In Progress)</h3>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Token</th>
-                            <th>Name</th>
-                            <th>Subject/Type</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminActiveComplaintsTable"></tbody>
-                </table>
+                <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+                    <table class="admin-table" style="min-width: 800px;">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Name</th>
+                                <th>Subject/Type</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminActiveComplaintsTable"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Resolved Complaints Section -->
-            <div id="adminResolvedComplaintsSection" class="admin-view-section hidden">
+            <div id="adminResolvedComplaintsSection" class="admin-table-section hidden">
                 <h3>Solved Problems (Resolved)</h3>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Token</th>
-                            <th>Name</th>
-                            <th>Subject/Type</th>
-                            <th>Status</th>
-                            <th>Resolved Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminResolvedComplaintsTable"></tbody>
-                </table>
+                <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+                    <table class="admin-table" style="min-width: 800px;">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Name</th>
+                                <th>Subject/Type</th>
+                                <th>Status</th>
+                                <th>Resolved Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminResolvedComplaintsTable"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- User Management Section -->
-            <div id="adminUsersSection" class="admin-view-section hidden">
+            <div id="adminUsersSection" class="admin-table-section hidden">
                 <h3>User Management</h3>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Joined</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminUsersTable"></tbody>
-                </table>
+                <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+                    <table class="admin-table" style="min-width: 800px;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersTable"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Edit Complaint Modal -->
