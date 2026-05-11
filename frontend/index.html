@@ -27,8 +27,9 @@
                     style="margin-right: 15px; font-weight: bold; color: white;"></span>
                 <button id="userProfileBtn" class="admin-btn hidden" style="margin-right: 10px;">Profile</button>
                 <button id="userAuthBtn" class="admin-btn">Login / Register</button>
-                <button id="userLogoutBtn" class="admin-btn hidden">Logout</button>
+                <button id="userLogoutBtn" class="admin-btn hidden" onclick="userLogout()">Logout</button>
                 <button id="adminBtn" class="admin-btn">Admin Login</button>
+                <button id="adminLogoutBtn" class="admin-btn hidden" onclick="adminLogout()" style="background-color: #ef4444; border-color: #ef4444;">Logout</button>
             </div>
         </div>
     </nav>
@@ -197,9 +198,8 @@
     <!-- Admin Dashboard (Hidden) -->
     <div id="adminDashboard" class="admin-section hidden">
         <div class="container">
-            <div class="admin-header">
+            <div class="admin-header" style="text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 20px;">
                 <h2>Welcome, Aishwaryya (Admin)</h2>
-                <button onclick="adminLogout()" class="btn-logout">Logout</button>
             </div>
 
             <!-- Stats Section -->

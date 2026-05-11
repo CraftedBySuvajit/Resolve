@@ -271,48 +271,57 @@ function copyComplaintDetails(elementId) {
 // Display complaint details
 function displayComplaintDetails(complaint) {
     const detailsHtml = `
-        <div id="pdf-content-${complaint.token}">
-        <h2 style="color:var(--primary-color); margin-bottom: 15px;">Complaint Record</h2>
-        <div class="detail-item">
-            <div class="detail-label">Token ID:</div>
-            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">Copy</button></div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Name:</div>
-            <div class="detail-value">${complaint.name}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Email:</div>
-            <div class="detail-value">${complaint.email}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Phone:</div>
-            <div class="detail-value">${complaint.phone}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Subject:</div>
-            <div class="detail-value">${complaint.subject}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Status:</div>
-            <div class="detail-value">
-                <span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span>
+        <div id="pdf-content-${complaint.token}" style="border: 2px solid #334155; padding: 40px; background: #ffffff; border-radius: 8px; font-family: Arial, sans-serif; position: relative;">
+            
+            <div style="text-align: center; border-bottom: 3px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="color: #1e293b; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">Official Complaint Record</h1>
+                <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px;">Complaint Management System</p>
+                <div style="position: absolute; top: 40px; right: 40px; text-align: right; font-size: 12px; color: #64748b;">
+                    <p style="margin: 0;"><strong>Token ID:</strong></p>
+                    <p style="margin: 0; font-size: 16px; color: #0f172a; font-weight: bold;">${complaint.token}</p>
+                </div>
             </div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Description:</div>
-            <div class="detail-value">${complaint.description}</div>
-        </div>
-        ${complaint.reply ? `
-        <div class="detail-item">
-            <div class="detail-label">Reply:</div>
-            <div class="detail-value">${complaint.reply}</div>
-        </div>
-        ` : ''}
-        <div class="detail-item">
-            <div class="detail-label">Submitted:</div>
-            <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
-        </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; background: #f8fafc; padding: 20px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Complainant Name</p>
+                    <p style="margin: 0; font-weight: 600; color: #0f172a; font-size: 16px;">${complaint.name || 'User'}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Contact Details</p>
+                    <p style="margin: 0; color: #0f172a; font-size: 14px;">${complaint.email || 'N/A'}</p>
+                    <p style="margin: 0; color: #0f172a; font-size: 14px;">${complaint.phone || 'N/A'}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Date Submitted</p>
+                    <p style="margin: 0; font-weight: 600; color: #0f172a; font-size: 14px;">${new Date(complaint.created_at).toLocaleString()}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Current Status</p>
+                    <p style="margin: 0; font-weight: bold; font-size: 14px; text-transform: uppercase; color: ${complaint.status === 'resolved' ? '#059669' : (complaint.status === 'pending' ? '#d97706' : '#2563eb')};">
+                        ${complaint.status.replace('_', ' ')}
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #334155; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 15px; font-size: 16px;">Subject</h3>
+                <p style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 600;">${complaint.subject}</p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #334155; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 15px; font-size: 16px;">Complaint Description</h3>
+                <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${complaint.description}</p>
+            </div>
+
+            <div style="margin-bottom: 40px; background: ${complaint.reply ? '#f0fdf4' : '#fff1f2'}; padding: 20px; border-left: 4px solid ${complaint.reply ? '#10b981' : '#f43f5e'};">
+                <h3 style="color: #334155; margin: 0 0 10px 0; font-size: 16px;">Official Response</h3>
+                <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${complaint.reply || 'No official response has been provided yet.'}</p>
+            </div>
+
+            <div style="text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px dashed #cbd5e1; padding-top: 20px; margin-top: 40px;">
+                This document is electronically generated and is an official record of the Complaint Management System.
+            </div>
         </div>
         <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button onclick="downloadComplaintPDF('pdf-content-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Download PDF</button>
@@ -382,34 +391,57 @@ function openUserComplaintModal(token) {
     if (!complaint) return;
 
     const detailsHtml = `
-        <div id="pdf-user-${complaint.token}">
-        <h2 style="color:var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">Complaint Record</h2>
-        <div class="detail-item">
-            <div class="detail-label">Token:</div>
-            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">Copy</button></div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Subject:</div>
-            <div class="detail-value">${complaint.subject}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Status:</div>
-            <div class="detail-value">
-                <span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span>
+        <div id="pdf-user-${complaint.token}" style="border: 2px solid #334155; padding: 40px; background: #ffffff; border-radius: 8px; font-family: Arial, sans-serif; position: relative;">
+            
+            <div style="text-align: center; border-bottom: 3px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="color: #1e293b; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">Official Complaint Record</h1>
+                <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px;">Complaint Management System</p>
+                <div style="position: absolute; top: 40px; right: 40px; text-align: right; font-size: 12px; color: #64748b;">
+                    <p style="margin: 0;"><strong>Token ID:</strong></p>
+                    <p style="margin: 0; font-size: 16px; color: #0f172a; font-weight: bold;">${complaint.token}</p>
+                </div>
             </div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Description:</div>
-            <div class="detail-value">${complaint.description}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Reply:</div>
-            <div class="detail-value">${complaint.reply || 'No reply yet'}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Submitted:</div>
-            <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
-        </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; background: #f8fafc; padding: 20px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Complainant Name</p>
+                    <p style="margin: 0; font-weight: 600; color: #0f172a; font-size: 16px;">${complaint.name || 'User'}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Contact Details</p>
+                    <p style="margin: 0; color: #0f172a; font-size: 14px;">${complaint.email || 'N/A'}</p>
+                    <p style="margin: 0; color: #0f172a; font-size: 14px;">${complaint.phone || 'N/A'}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Date Submitted</p>
+                    <p style="margin: 0; font-weight: 600; color: #0f172a; font-size: 14px;">${new Date(complaint.created_at).toLocaleString()}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Current Status</p>
+                    <p style="margin: 0; font-weight: bold; font-size: 14px; text-transform: uppercase; color: ${complaint.status === 'resolved' ? '#059669' : (complaint.status === 'pending' ? '#d97706' : '#2563eb')};">
+                        ${complaint.status.replace('_', ' ')}
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #334155; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 15px; font-size: 16px;">Subject</h3>
+                <p style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 600;">${complaint.subject}</p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #334155; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 15px; font-size: 16px;">Complaint Description</h3>
+                <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${complaint.description}</p>
+            </div>
+
+            <div style="margin-bottom: 40px; background: ${complaint.reply ? '#f0fdf4' : '#fff1f2'}; padding: 20px; border-left: 4px solid ${complaint.reply ? '#10b981' : '#f43f5e'};">
+                <h3 style="color: #334155; margin: 0 0 10px 0; font-size: 16px;">Official Response</h3>
+                <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${complaint.reply || 'No official response has been provided yet.'}</p>
+            </div>
+
+            <div style="text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px dashed #cbd5e1; padding-top: 20px; margin-top: 40px;">
+                This document is electronically generated and is an official record of the Complaint Management System.
+            </div>
         </div>
         <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button onclick="downloadComplaintPDF('pdf-user-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Download PDF</button>
@@ -815,46 +847,57 @@ function openViewModal(complaintId) {
     if (!complaint) return;
 
     const detailsHtml = `
-        <div id="pdf-admin-${complaint.token}">
-        <h2 style="color:var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">Complaint Record</h2>
-        <div class="detail-item">
-            <div class="detail-label">Token:</div>
-            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">Copy</button></div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Name:</div>
-            <div class="detail-value">${complaint.name}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Email:</div>
-            <div class="detail-value">${complaint.email}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Phone:</div>
-            <div class="detail-value">${complaint.phone}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Subject:</div>
-            <div class="detail-value">${complaint.subject}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Status:</div>
-            <div class="detail-value">
-                <span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span>
+        <div id="pdf-admin-${complaint.token}" style="border: 2px solid #334155; padding: 40px; background: #ffffff; border-radius: 8px; font-family: Arial, sans-serif; position: relative;">
+            
+            <div style="text-align: center; border-bottom: 3px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="color: #1e293b; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">Official Complaint Record</h1>
+                <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px;">Complaint Management System</p>
+                <div style="position: absolute; top: 40px; right: 40px; text-align: right; font-size: 12px; color: #64748b;">
+                    <p style="margin: 0;"><strong>Token ID:</strong></p>
+                    <p style="margin: 0; font-size: 16px; color: #0f172a; font-weight: bold;">${complaint.token}</p>
+                </div>
             </div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Description:</div>
-            <div class="detail-value">${complaint.description}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Reply:</div>
-            <div class="detail-value">${complaint.reply || 'No reply yet'}</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Submitted:</div>
-            <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
-        </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; background: #f8fafc; padding: 20px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Complainant Name</p>
+                    <p style="margin: 0; font-weight: 600; color: #0f172a; font-size: 16px;">${complaint.name}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Contact Details</p>
+                    <p style="margin: 0; color: #0f172a; font-size: 14px;">${complaint.email}</p>
+                    <p style="margin: 0; color: #0f172a; font-size: 14px;">${complaint.phone || 'N/A'}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Date Submitted</p>
+                    <p style="margin: 0; font-weight: 600; color: #0f172a; font-size: 14px;">${new Date(complaint.created_at).toLocaleString()}</p>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; color: #64748b; font-size: 13px;">Current Status</p>
+                    <p style="margin: 0; font-weight: bold; font-size: 14px; text-transform: uppercase; color: ${complaint.status === 'resolved' ? '#059669' : (complaint.status === 'pending' ? '#d97706' : '#2563eb')};">
+                        ${complaint.status.replace('_', ' ')}
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #334155; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 15px; font-size: 16px;">Subject</h3>
+                <p style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 600;">${complaint.subject}</p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: #334155; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 15px; font-size: 16px;">Complaint Description</h3>
+                <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${complaint.description}</p>
+            </div>
+
+            <div style="margin-bottom: 40px; background: ${complaint.reply ? '#f0fdf4' : '#fff1f2'}; padding: 20px; border-left: 4px solid ${complaint.reply ? '#10b981' : '#f43f5e'};">
+                <h3 style="color: #334155; margin: 0 0 10px 0; font-size: 16px;">Official Response</h3>
+                <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${complaint.reply || 'No official response has been provided yet.'}</p>
+            </div>
+
+            <div style="text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px dashed #cbd5e1; padding-top: 20px; margin-top: 40px;">
+                This document is electronically generated and is an official record of the Complaint Management System.
+            </div>
         </div>
         <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button onclick="downloadComplaintPDF('pdf-admin-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Download PDF</button>
