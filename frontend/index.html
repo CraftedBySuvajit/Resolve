@@ -29,7 +29,6 @@
                 <button id="userAuthBtn" class="admin-btn">Login / Register</button>
                 <button id="userLogoutBtn" class="admin-btn hidden" onclick="userLogout()">Logout</button>
                 <button id="adminBtn" class="admin-btn">Admin Login</button>
-                <button id="adminLogoutBtn" class="admin-btn hidden" onclick="adminLogout()" style="background-color: #ef4444; border-color: #ef4444;">Logout</button>
             </div>
         </div>
     </nav>
@@ -198,8 +197,9 @@
     <!-- Admin Dashboard (Hidden) -->
     <div id="adminDashboard" class="admin-section hidden">
         <div class="container">
-            <div class="admin-header" style="text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 20px;">
+            <div class="admin-header">
                 <h2>Welcome, Aishwaryya (Admin)</h2>
+                <button onclick="adminLogout()" class="btn-logout">Logout</button>
             </div>
 
             <!-- Stats Section -->
@@ -365,8 +365,9 @@
 
     <!-- View Complaint Modal (Moved outside for global access) -->
     <div id="viewModal" class="modal">
-        <div class="modal-content" style="max-width: 800px; padding: 30px;">
+        <div class="modal-content">
             <span class="close" onclick="closeViewModal()">&times;</span>
+            <h2>Complaint Details</h2>
             <div id="viewDetailsContent"></div>
         </div>
     </div>
