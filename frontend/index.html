@@ -224,19 +224,19 @@
 
             <!-- Stats Section -->
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card card-blue">
                     <h3 id="totalComplaints">0</h3>
                     <p>Total Complaints</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card card-yellow">
                     <h3 id="pendingComplaints">0</h3>
                     <p>Pending</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card card-green">
                     <h3 id="resolvedComplaints">0</h3>
                     <p>Resolved</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card card-indigo">
                     <h3 id="inProgressComplaints">0</h3>
                     <p>In Progress</p>
                 </div>
@@ -244,9 +244,9 @@
 
             <!-- Admin Tabs -->
             <div class="admin-tabs-container">
-                <button class="btn-primary admin-tab-btn active" onclick="switchAdminTab('activeComplaints')" style="border-radius: 8px; background: var(--primary-color); color: white;">All Complaints</button>
-                <button class="btn-primary admin-tab-btn" onclick="switchAdminTab('users')" style="border-radius: 8px; background: #6366f1; color: white;">User Management</button>
-                <button class="btn-primary admin-tab-btn" onclick="switchAdminTab('resolvedComplaints')" style="border-radius: 8px; background: #10b981; color: white;">Solved Problems</button>
+                <button class="btn-primary admin-tab-btn active" onclick="switchAdminTab('activeComplaints', event)" style="border-radius: 8px; background: var(--primary-color); color: white;">All Complaints</button>
+                <button class="btn-primary admin-tab-btn" onclick="switchAdminTab('users', event)" style="border-radius: 8px; background: #6366f1; color: white;">User Management</button>
+                <button class="btn-primary admin-tab-btn" onclick="switchAdminTab('resolvedComplaints', event)" style="border-radius: 8px; background: #10b981; color: white;">Solved Problems</button>
             </div>
 
             <!-- Active Complaints Section -->

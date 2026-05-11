@@ -719,13 +719,14 @@ function adminLogout() {
 // Admin Tab Switching
 let currentAdminTab = 'activeComplaints';
 
-function switchAdminTab(tab) {
+function switchAdminTab(tab, event) {
     currentAdminTab = tab;
     // Update button styles
     const buttons = document.querySelectorAll('.admin-tab-btn');
-    buttons.forEach(btn => btn.style.border = 'none');
-    if(event && event.currentTarget) {
-        event.currentTarget.style.border = '2px solid white';
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
     }
 
     // Hide all sections
