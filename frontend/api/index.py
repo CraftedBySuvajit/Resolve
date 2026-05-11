@@ -36,13 +36,16 @@ active_admin_tokens = {}
 active_user_tokens = {}
 
 SUPABASE_HEADERS = {
-    'apikey': SUPABASE_KEY,
-    'Authorization': f'Bearer {SUPABASE_KEY}',
+    'apikey': SUPABASE_KEY or '',
+    'Authorization': f'Bearer {SUPABASE_KEY}' if SUPABASE_KEY else '',
     'Content-Type': 'application/json'
 }
 
 
 def supabase_request(method, path, params=None, payload=None, prefer_return=False):
+    if not SUPABASE_REST_URL or not SUPABASE_KEY:
+        raise RuntimeError("Supabase environment variables (SUPABASE_URL or SUPABASE_KEY) are missing. Please add them to your Vercel project settings.")
+
     headers = dict(SUPABASE_HEADERS)
     if prefer_return:
         headers['Prefer'] = 'return=representation'
