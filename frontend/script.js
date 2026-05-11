@@ -348,6 +348,20 @@ async function loadMyComplaints() {
 }
 
 function renderUserComplaints() {
+    // Calculate stats
+    const total = currentUserComplaints.length;
+    const pending = currentUserComplaints.filter(c => c.status === 'pending' || c.status === 'in_progress').length;
+    const resolved = currentUserComplaints.filter(c => c.status === 'resolved').length;
+
+    // Update DOM
+    const totalEl = document.getElementById('userTotalComplaints');
+    const pendingEl = document.getElementById('userPendingComplaints');
+    const resolvedEl = document.getElementById('userResolvedComplaints');
+    
+    if (totalEl) totalEl.textContent = total;
+    if (pendingEl) pendingEl.textContent = pending;
+    if (resolvedEl) resolvedEl.textContent = resolved;
+
     let html = '';
     const filteredComplaints = currentUserComplaints.filter(complaint => {
         if (currentComplaintTab === 'active') {
@@ -510,12 +524,11 @@ function updateUserUI() {
     const userLogoutBtn = document.getElementById('userLogoutBtn');
     const adminLogoutBtn = document.getElementById('adminLogoutBtn');
     const profileBtn = document.getElementById('userProfileBtn');
-    const myComplaints = document.getElementById('myComplaintsSection');
     const submitBtn = document.getElementById('submitComplaintBtn');
     const submitWarning = document.getElementById('submitAuthWarning');
-    const publicSection = document.getElementById('publicSection');
     const adminBtn = document.getElementById('adminBtn');
     const howItWorks = document.getElementById('howItWorksSection');
+    const userDashboard = document.getElementById('userDashboard');
     
     if (currentAdminToken) {
         // Admin logged in
@@ -525,8 +538,7 @@ function updateUserUI() {
         userLogoutBtn.classList.add('hidden');
         if(adminLogoutBtn) adminLogoutBtn.classList.remove('hidden');
         if(profileBtn) profileBtn.classList.add('hidden');
-        myComplaints.classList.add('hidden');
-        publicSection.classList.add('hidden');
+        if(userDashboard) userDashboard.classList.add('hidden');
         if(adminBtn) adminBtn.classList.add('hidden');
         if(howItWorks) howItWorks.classList.add('hidden');
     } else if (currentUser) {
@@ -537,8 +549,7 @@ function updateUserUI() {
         userLogoutBtn.classList.remove('hidden');
         if(adminLogoutBtn) adminLogoutBtn.classList.add('hidden');
         if(profileBtn) profileBtn.classList.remove('hidden');
-        myComplaints.classList.remove('hidden');
-        publicSection.classList.remove('hidden');
+        if(userDashboard) userDashboard.classList.remove('hidden');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Complaint';
         submitWarning.classList.add('hidden');
@@ -551,8 +562,7 @@ function updateUserUI() {
         userLogoutBtn.classList.add('hidden');
         if(adminLogoutBtn) adminLogoutBtn.classList.add('hidden');
         if(profileBtn) profileBtn.classList.add('hidden');
-        myComplaints.classList.add('hidden');
-        publicSection.classList.add('hidden');
+        if(userDashboard) userDashboard.classList.add('hidden');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Login to Submit Complaint';
         submitWarning.classList.remove('hidden');
@@ -859,6 +869,7 @@ function openViewModal(complaintId) {
         <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button onclick="downloadComplaintPDF('pdf-admin-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Download PDF</button>
             <button onclick="copyComplaintDetails('pdf-admin-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center; min-width: 120px;">Copy Details</button>
+            <button onclick="closeViewModal(); openEditModal(${complaint.id}, '${complaint.status}', '${complaint.reply || ''}')" class="btn-primary" style="flex: 1; background: var(--primary-color); text-align: center; min-width: 120px;">Update/Reply</button>
             <button onclick="closeViewModal()" class="btn-primary" style="flex: 1; background: #64748b; text-align: center; min-width: 120px;">Close</button>
             <button onclick="deleteComplaint(${complaint.id})" class="btn-primary" style="flex: 1; background: var(--danger-color); text-align: center; min-width: 120px;">Delete</button>
         </div>

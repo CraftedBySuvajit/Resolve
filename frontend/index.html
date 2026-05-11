@@ -115,40 +115,60 @@
 
     <!-- Main Container -->
     <div class="container main-container">
-        <!-- Public Complaint Section -->
-        <section id="publicSection" class="section hidden">
-            <h2>Submit New Complaint</h2>
-            <form id="complaintForm" class="complaint-form">
-                <div class="form-group">
-                    <label for="subject">Subject / Complaint Type *</label>
-                    <input type="text" id="subject" placeholder="e.g. Descibe your problem title" required>
+        <!-- User Dashboard (Visible only when logged in) -->
+        <div id="userDashboard" class="hidden">
+            <!-- User Stats Section -->
+            <div class="user-stats-grid">
+                <div class="user-stat-card card-blue">
+                    <h3 id="userTotalComplaints">0</h3>
+                    <p>Total Complaints</p>
                 </div>
-                <div class="form-group">
-                    <label for="description">Complaint Description *</label>
-                    <textarea id="description" rows="5" placeholder="e.g. Descibe your problem in details"
-                        required></textarea>
+                <div class="user-stat-card card-yellow">
+                    <h3 id="userPendingComplaints">0</h3>
+                    <p>Pending / In Progress</p>
                 </div>
-                <div class="form-group">
-                    <label for="referenceToken">Reference Old Token ID (Optional)</label>
-                    <input type="text" id="referenceToken" placeholder="e.g. TKN-20260511-1234">
+                <div class="user-stat-card card-green">
+                    <h3 id="userResolvedComplaints">0</h3>
+                    <p>Resolved</p>
                 </div>
-                <button type="submit" id="submitComplaintBtn" class="btn-primary" disabled>Login to Submit
-                    Complaint</button>
-            </form>
-            <div id="submitAuthWarning" style="color: red; margin-top: 10px;">Please login to submit a complaint.</div>
-            <div id="successMessage" class="message"></div>
-        </section>
-
-        <!-- My Complaints Section (Visible only when logged in) -->
-        <section id="myComplaintsSection" class="section hidden">
-            <h2>My Complaints</h2>
-            <div class="complaint-tabs" style="margin-bottom: 20px;">
-                <button id="tabActiveComplaints" class="tab-btn active" style="margin-right: 10px;">Active
-                    Complaints</button>
-                <button id="tabResolvedComplaints" class="tab-btn">Resolved Complaints</button>
             </div>
-            <div id="myComplaintsList" class="complaints-list"></div>
-        </section>
+
+            <div class="user-dashboard-layout">
+                <!-- Public Complaint Section -->
+                <section id="publicSection" class="section">
+                    <h2>Submit New Complaint</h2>
+                    <form id="complaintForm" class="complaint-form">
+                        <div class="form-group">
+                            <label for="subject">Subject / Complaint Type *</label>
+                            <input type="text" id="subject" placeholder="e.g. Describe your problem title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Complaint Description *</label>
+                            <textarea id="description" rows="5" placeholder="e.g. Describe your problem in details"
+                                required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="referenceToken">Reference Old Token ID (Optional)</label>
+                            <input type="text" id="referenceToken" placeholder="e.g. TKN-20260511-1234">
+                        </div>
+                        <button type="submit" id="submitComplaintBtn" class="btn-primary">Submit Complaint</button>
+                    </form>
+                    <div id="submitAuthWarning" style="color: red; margin-top: 10px;" class="hidden">Please login to submit a complaint.</div>
+                    <div id="successMessage" class="message"></div>
+                </section>
+
+                <!-- My Complaints Section -->
+                <section id="myComplaintsSection" class="section">
+                    <h2>My Complaints</h2>
+                    <div class="complaint-tabs" style="margin-bottom: 20px;">
+                        <button id="tabActiveComplaints" class="tab-btn active" style="margin-right: 10px;">Active
+                            Complaints</button>
+                        <button id="tabResolvedComplaints" class="tab-btn">Resolved Complaints</button>
+                    </div>
+                    <div id="myComplaintsList" class="complaints-list"></div>
+                </section>
+            </div>
+        </div>
 
         <!-- Track Complaint Section -->
         <section class="section">
