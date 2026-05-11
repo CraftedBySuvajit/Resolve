@@ -847,7 +847,7 @@ function openViewModal(complaintId) {
     if (!complaint) return;
 
     const detailsHtml = `
-        <div id="pdf-admin-${complaint.token}" style="border: 2px solid #334155; padding: 40px; background: #ffffff; border-radius: 8px; font-family: Arial, sans-serif; position: relative;">
+        <div id="pdf-admin-${complaint.token}" style="border: 2px solid #334155; padding: 20px; background: #ffffff; border-radius: 8px; font-family: Arial, sans-serif; position: relative;">
             
             <div style="text-align: center; border-bottom: 3px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px;">
                 <h1 style="color: #1e293b; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">Official Complaint Record</h1>
