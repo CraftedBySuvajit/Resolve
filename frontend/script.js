@@ -870,7 +870,7 @@ function openViewModal(complaintId) {
         <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button onclick="downloadComplaintPDF('pdf-admin-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Download PDF</button>
             <button onclick="copyComplaintDetails('pdf-admin-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center; min-width: 120px;">Copy Details</button>
-            <button onclick="closeViewModal(); openEditModal(${complaint.id}, '${complaint.status}', '${complaint.reply || ''}')" class="btn-primary" style="flex: 1; background: var(--primary-color); text-align: center; min-width: 120px;">Update/Reply</button>
+            ${complaint.status !== 'resolved' ? `<button onclick="closeViewModal(); openEditModal(${complaint.id}, '${complaint.status}', '${complaint.reply || ''}')" class="btn-primary" style="flex: 1; background: var(--primary-color); text-align: center; min-width: 120px;">Update/Reply</button>` : ''}
             <button onclick="closeViewModal()" class="btn-primary" style="flex: 1; background: #64748b; text-align: center; min-width: 120px;">Close</button>
             <button onclick="deleteComplaint(${complaint.id})" class="btn-primary" style="flex: 1; background: var(--danger-color); text-align: center; min-width: 120px;">Delete</button>
         </div>
