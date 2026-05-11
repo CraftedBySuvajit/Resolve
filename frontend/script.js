@@ -128,7 +128,7 @@ async function submitComplaint(e) {
         if (response.ok) {
             showMessage(
                 `<strong>Success!</strong> Your complaint has been submitted.<br>
-                <strong>Your Complaint Token:</strong> <code style="background:#f0f0f0; padding:5px; border-radius:3px;">${data.token}</code> <button onclick="copyToken('${data.token}')" class="btn-copy">📋</button><br>
+                <strong>Your Complaint Token:</strong> <code style="background:#f0f0f0; padding:5px; border-radius:3px;">${data.token}</code> <button onclick="copyToken('${data.token}')" class="btn-copy">Copy</button><br>
                 <small>Save this token to track your complaint.</small>`,
                 'success'
             );
@@ -242,8 +242,9 @@ function copyComplaintDetails(elementId) {
     const element = document.getElementById(elementId);
     if (!element) return;
     // Format text nicely without the button text
-    let textToCopy = element.innerText;
-    textToCopy = textToCopy.replace(/📋/g, ''); // remove clipboard icons
+    const clone = element.cloneNode(true);
+    clone.querySelectorAll('button').forEach(btn => btn.remove());
+    let textToCopy = clone.innerText;
     navigator.clipboard.writeText(textToCopy).then(() => {
         alert('Complaint details copied to clipboard!');
     }).catch(err => {
@@ -259,7 +260,7 @@ function displayComplaintDetails(complaint) {
         <h2 style="color:var(--primary-color); margin-bottom: 15px;">Complaint Record</h2>
         <div class="detail-item">
             <div class="detail-label">Token ID:</div>
-            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">📋</button></div>
+            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">Copy</button></div>
         </div>
         <div class="detail-item">
             <div class="detail-label">Name:</div>
@@ -352,7 +353,7 @@ function renderUserComplaints() {
                     <span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span>
                     <div style="margin-top: 1rem; display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size: 0.85rem; color: #999;">Token: ${complaint.token}</span>
-                        <button onclick="copyToken('${complaint.token}'); event.stopPropagation();" class="btn-copy">📋</button>
+                        <button onclick="copyToken('${complaint.token}'); event.stopPropagation();" class="btn-copy">Copy</button>
                     </div>
                 </div>
             `;
@@ -370,7 +371,7 @@ function openUserComplaintModal(token) {
         <h2 style="color:var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">Complaint Record</h2>
         <div class="detail-item">
             <div class="detail-label">Token:</div>
-            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">📋</button></div>
+            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">Copy</button></div>
         </div>
         <div class="detail-item">
             <div class="detail-label">Subject:</div>
@@ -497,6 +498,7 @@ function updateUserUI() {
     const submitWarning = document.getElementById('submitAuthWarning');
     const publicSection = document.getElementById('publicSection');
     const adminBtn = document.getElementById('adminBtn');
+    const howItWorks = document.getElementById('howItWorksSection');
     
     if (currentUser) {
         welcome.textContent = `Welcome, ${currentUser.name}`;
@@ -509,6 +511,7 @@ function updateUserUI() {
         submitBtn.textContent = 'Submit Complaint';
         submitWarning.classList.add('hidden');
         if(adminBtn) adminBtn.classList.add('hidden');
+        if(howItWorks) howItWorks.classList.add('hidden');
     } else {
         welcome.classList.add('hidden');
         authBtn.classList.remove('hidden');
@@ -519,6 +522,7 @@ function updateUserUI() {
         submitBtn.textContent = 'Login to Submit Complaint';
         submitWarning.classList.remove('hidden');
         if(adminBtn) adminBtn.classList.remove('hidden');
+        if(howItWorks) howItWorks.classList.remove('hidden');
     }
 }
 
@@ -659,7 +663,7 @@ async function loadAdminComplaints() {
         complaints.forEach(complaint => {
             tableHtml += `
                 <tr>
-                    <td><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">📋</button></td>
+                    <td><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">Copy</button></td>
                     <td>${complaint.name}</td>
                     <td>${complaint.subject || ''}</td>
                     <td><span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ')}</span></td>
@@ -701,7 +705,7 @@ function openViewModal(complaintId) {
         <h2 style="color:var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">Complaint Record</h2>
         <div class="detail-item">
             <div class="detail-label">Token:</div>
-            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">📋</button></div>
+            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">Copy</button></div>
         </div>
         <div class="detail-item">
             <div class="detail-label">Name:</div>
