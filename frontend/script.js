@@ -213,14 +213,28 @@ function copyToken(token) {
 function downloadComplaintPDF(elementId, token) {
     const element = document.getElementById(elementId);
     if (!element) return;
+    
     const opt = {
         margin:       0.5,
         filename:     `Complaint_${token}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true, 
+            scrollY: 0, 
+            scrollX: 0,
+            backgroundColor: '#ffffff'
+        },
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
-    html2pdf().set(opt).from(element).save();
+
+    // Setting explicit background color to prevent transparent/black rendering
+    const originalBg = element.style.backgroundColor;
+    element.style.backgroundColor = '#ffffff';
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        element.style.backgroundColor = originalBg;
+    });
 }
 
 // Copy full complaint details
@@ -284,9 +298,10 @@ function displayComplaintDetails(complaint) {
             <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
         </div>
         </div>
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-            <button onclick="downloadComplaintPDF('pdf-content-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center;">Download PDF</button>
-            <button onclick="copyComplaintDetails('pdf-content-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center;">Copy Details</button>
+        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="downloadComplaintPDF('pdf-content-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Download PDF</button>
+            <button onclick="copyComplaintDetails('pdf-content-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center; min-width: 120px;">Copy Details</button>
+            <button onclick="document.getElementById('complaintDetails').classList.add('hidden')" class="btn-primary" style="flex: 1; background: #64748b; text-align: center; min-width: 120px;">Close</button>
         </div>
     `;
 
@@ -380,9 +395,10 @@ function openUserComplaintModal(token) {
             <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
         </div>
         </div>
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-            <button onclick="downloadComplaintPDF('pdf-user-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center;">Download PDF</button>
-            <button onclick="copyComplaintDetails('pdf-user-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center;">Copy Details</button>
+        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="downloadComplaintPDF('pdf-user-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Download PDF</button>
+            <button onclick="copyComplaintDetails('pdf-user-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center; min-width: 120px;">Copy Details</button>
+            <button onclick="document.getElementById('viewModal').classList.remove('show')" class="btn-primary" style="flex: 1; background: #64748b; text-align: center; min-width: 120px;">Close</button>
         </div>
     `;
 
@@ -722,9 +738,11 @@ function openViewModal(complaintId) {
             <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
         </div>
         </div>
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-            <button onclick="downloadComplaintPDF('pdf-admin-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center;">Download PDF</button>
-            <button onclick="copyComplaintDetails('pdf-admin-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center;">Copy Details</button>
+        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="downloadComplaintPDF('pdf-admin-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Download PDF</button>
+            <button onclick="copyComplaintDetails('pdf-admin-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center; min-width: 120px;">Copy Details</button>
+            <button onclick="closeViewModal()" class="btn-primary" style="flex: 1; background: #64748b; text-align: center; min-width: 120px;">Close</button>
+            <button onclick="deleteComplaint(${complaint.id})" class="btn-primary" style="flex: 1; background: var(--danger-color); text-align: center; min-width: 120px;">Delete</button>
         </div>
     `;
 
@@ -800,6 +818,7 @@ async function deleteComplaint(complaintId) {
 
             if (response.ok) {
                 alert('Complaint deleted successfully');
+                closeViewModal();
                 await loadAdminComplaints();
             } else {
                 const data = await response.json();
