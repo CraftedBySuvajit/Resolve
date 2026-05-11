@@ -11,6 +11,8 @@ let currentEditingComplaintId = null;
 let currentComplaints = []; // Store complaints for admin view
 let currentUserComplaints = []; // Store user's complaints
 let currentComplaintTab = 'active'; // 'active' or 'resolved'
+let currentAdminUsers = []; // Store users for admin view
+let currentEditingUserId = null;
 
 // Loading Helper Functions
 function showLoading() {
@@ -49,6 +51,10 @@ function setupEventListeners() {
         document.getElementById('userAuthModal').classList.remove('show');
     });
     document.getElementById('userLogoutBtn').addEventListener('click', userLogout);
+
+    // Profile
+    document.getElementById('userProfileBtn').addEventListener('click', openUserProfileModal);
+    document.getElementById('userProfileClose').addEventListener('click', closeUserProfileModal);
     
     // Auth Tabs
     document.getElementById('tabLogin').addEventListener('click', () => switchAuthTab('login'));
@@ -62,7 +68,7 @@ function setupEventListeners() {
     document.getElementById('userLoginForm').addEventListener('submit', userLogin);
     document.getElementById('userRegisterForm').addEventListener('submit', userRegister);
     
-    // Check saved token
+    // Check saved user token
     const savedToken = localStorage.getItem('userToken');
     const savedUser = localStorage.getItem('user');
     if (savedToken && savedUser) {
@@ -70,6 +76,15 @@ function setupEventListeners() {
         currentUser = JSON.parse(savedUser);
         updateUserUI();
         loadMyComplaints();
+    }
+
+    // Check saved admin token
+    const savedAdminToken = localStorage.getItem('adminToken');
+    if (savedAdminToken) {
+        currentAdminToken = savedAdminToken;
+        showAdminDashboard();
+        loadAdminComplaints();
+        loadAdminUsers();
     }
 }
 
@@ -493,6 +508,7 @@ function updateUserUI() {
     const welcome = document.getElementById('welcomeUser');
     const authBtn = document.getElementById('userAuthBtn');
     const logoutBtn = document.getElementById('userLogoutBtn');
+    const profileBtn = document.getElementById('userProfileBtn');
     const myComplaints = document.getElementById('myComplaintsSection');
     const submitBtn = document.getElementById('submitComplaintBtn');
     const submitWarning = document.getElementById('submitAuthWarning');
@@ -505,6 +521,7 @@ function updateUserUI() {
         welcome.classList.remove('hidden');
         authBtn.classList.add('hidden');
         logoutBtn.classList.remove('hidden');
+        if(profileBtn) profileBtn.classList.remove('hidden');
         myComplaints.classList.remove('hidden');
         publicSection.classList.remove('hidden');
         submitBtn.disabled = false;
@@ -516,6 +533,7 @@ function updateUserUI() {
         welcome.classList.add('hidden');
         authBtn.classList.remove('hidden');
         logoutBtn.classList.add('hidden');
+        if(profileBtn) profileBtn.classList.add('hidden');
         myComplaints.classList.add('hidden');
         publicSection.classList.add('hidden');
         submitBtn.disabled = true;
@@ -524,6 +542,49 @@ function updateUserUI() {
         if(adminBtn) adminBtn.classList.remove('hidden');
         if(howItWorks) howItWorks.classList.remove('hidden');
     }
+}
+
+async function openUserProfileModal() {
+    if (!currentUserToken) return;
+    showLoading();
+    try {
+        const res = await fetch(`${API_BASE_URL}/profile`, {
+            headers: { 'Authorization': `Bearer ${currentUserToken}` }
+        });
+        if (res.ok) {
+            const user = await res.json();
+            document.getElementById('userProfileContent').innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">Name:</div>
+                    <div class="detail-value">${user.name}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Email:</div>
+                    <div class="detail-value">${user.email}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Phone:</div>
+                    <div class="detail-value">${user.phone || 'N/A'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Member Since:</div>
+                    <div class="detail-value">${new Date(user.created_at).toLocaleString()}</div>
+                </div>
+            `;
+            document.getElementById('userProfileModal').classList.add('show');
+        } else {
+            alert('Failed to load profile data.');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error loading profile');
+    } finally {
+        hideLoading();
+    }
+}
+
+function closeUserProfileModal() {
+    document.getElementById('userProfileModal').classList.remove('show');
 }
 
 function trackComplaint_fromCard(token) {
@@ -597,11 +658,14 @@ async function adminLogin(e) {
         }
 
         currentAdminToken = data.token;
+        localStorage.setItem('adminToken', currentAdminToken);
         closeAdminModal();
         showAdminDashboard();
         await loadAdminComplaints();
+        await loadAdminUsers();
     } catch (error) {
-        document.getElementById('adminMessage').textContent = 'Login failed. Try again.';
+        console.error("Admin login error:", error);
+        document.getElementById('adminMessage').textContent = 'Login failed: ' + error.message;
         document.getElementById('adminMessage').style.color = 'red';
     } finally {
         hideLoading();
@@ -621,6 +685,7 @@ function showAdminDashboard() {
 function adminLogout() {
     if(!confirm("Are you sure you want to exit the admin dashboard?")) return;
     currentAdminToken = null;
+    localStorage.removeItem('adminToken');
     document.getElementById('adminDashboard').classList.add('hidden');
     document.querySelector('.main-container').classList.remove('hidden');
     updateUserUI(); // Restore button visibility based on user login state
@@ -834,5 +899,116 @@ async function deleteComplaint(complaintId) {
         } finally {
             hideLoading();
         }
+    }
+}
+
+// User Management Functions for Admin
+async function loadAdminUsers() {
+    showLoading();
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/users`, {
+            headers: {
+                'Authorization': `Bearer ${currentAdminToken}`
+            }
+        });
+
+        if (response.ok) {
+            const users = await response.json();
+            currentAdminUsers = users;
+            let html = '';
+            users.forEach(u => {
+                html += `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.name}</td>
+                        <td>${u.email}</td>
+                        <td>${u.phone || 'N/A'}</td>
+                        <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn-edit" onclick="openEditUserModal(${u.id})">Edit</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('adminUsersTable').innerHTML = html;
+        }
+    } catch (error) {
+        console.error('Error loading admin users:', error);
+    } finally {
+        hideLoading();
+    }
+}
+
+function openEditUserModal(userId) {
+    const user = currentAdminUsers.find(u => u.id === userId);
+    if (!user) return;
+    currentEditingUserId = userId;
+    document.getElementById('editUserName').value = user.name;
+    document.getElementById('editUserEmail').value = user.email;
+    document.getElementById('editUserPhone').value = user.phone || '';
+    document.getElementById('editUserModal').classList.add('show');
+}
+
+function closeEditUserModal() {
+    document.getElementById('editUserModal').classList.remove('show');
+    currentEditingUserId = null;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Also add event listener for editUserForm
+    const editUserForm = document.getElementById('editUserForm');
+    if (editUserForm) {
+        editUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!confirm("Are you sure you want to update this user?")) return;
+
+            const updateData = {
+                name: document.getElementById('editUserName').value,
+                email: document.getElementById('editUserEmail').value,
+                phone: document.getElementById('editUserPhone').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/users/${currentEditingUserId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentAdminToken}`
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (response.ok) {
+                    alert('User updated successfully');
+                    closeEditUserModal();
+                    await loadAdminUsers();
+                } else {
+                    const data = await response.json();
+                    alert(data.message || 'Error updating user');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating user');
+            } finally {
+                hideLoading();
+            }
+        });
+    }
+});
+
+// Toggle password visibility
+function togglePassword(inputId, iconElement) {
+    const input = document.getElementById(inputId);
+    const svg = iconElement.querySelector('svg');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        // Eye-off icon (slash through eye)
+        svg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+    } else {
+        input.type = 'password';
+        // Eye icon
+        svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
     }
 }

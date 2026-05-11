@@ -220,6 +220,21 @@ def login_user():
     except Exception as e:
         return jsonify({'message': f'Error: {str(e)}'}), 500
 
+@app.route('/api/profile', methods=['GET'])
+@require_user_auth
+def get_user_profile():
+    """Get logged in user profile"""
+    try:
+        user_id = request.user['id']
+        users = supabase_request(method='GET', path='users', params={'id': f"eq.{user_id}"})
+        if not users:
+            return jsonify({'message': 'User not found'}), 404
+        user = users[0]
+        user.pop('password', None)
+        return jsonify(user), 200
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
+
 @app.route('/api/complaints', methods=['POST'])
 @require_user_auth
 def create_complaint():
@@ -377,6 +392,49 @@ def get_all_complaints():
             params={'select': '*', 'order': 'created_at.desc'},
         )
         return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
+
+@app.route('/api/admin/users', methods=['GET'])
+@require_admin_auth
+def get_all_users():
+    """Get all users (admin only)"""
+    try:
+        response = supabase_request(
+            method='GET',
+            path='users',
+            params={'select': '*'},
+        )
+        for user in response:
+            user.pop('password', None)
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
+
+@app.route('/api/admin/users/<int:user_id>', methods=['PUT'])
+@require_admin_auth
+def update_admin_user_data(user_id):
+    """Update user profile data (admin only)"""
+    try:
+        data = request.json
+        update_data = {}
+        if 'name' in data: update_data['name'] = data['name']
+        if 'email' in data: update_data['email'] = data['email']
+        if 'phone' in data: update_data['phone'] = data['phone']
+
+        response = supabase_request(
+            method='PATCH',
+            path='users',
+            params={'id': f'eq.{user_id}'},
+            payload=update_data,
+            prefer_return=True,
+        )
+
+        if response:
+            return jsonify({'message': 'User data updated successfully'}), 200
+        else:
+            return jsonify({'message': 'Error updating user data'}), 500
 
     except Exception as e:
         return jsonify({'message': f'Error: {str(e)}'}), 500
