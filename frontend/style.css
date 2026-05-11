@@ -281,6 +281,8 @@ body {
 
 .detail-value {
     color: var(--light-text);
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* Recent Complaints List */
@@ -308,12 +310,14 @@ body {
 .complaint-card h4 {
     color: var(--primary-color);
     margin-bottom: 0.5rem;
+    overflow-wrap: break-word;
 }
 
 .complaint-card p {
     color: var(--light-text);
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
+    overflow-wrap: break-word;
 }
 
 .status-badge {
