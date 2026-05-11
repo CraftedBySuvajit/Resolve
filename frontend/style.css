@@ -493,6 +493,23 @@ body {
     gap: 15px;
 }
 
+/* Admin Tabs Layout */
+.admin-tabs-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+.admin-tabs-container .admin-tab-btn {
+    text-align: center;
+    padding: 12px 10px;
+    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 /* Admin Section */
 .admin-section {
     background: white;
@@ -749,6 +766,10 @@ body {
     .modal-content {
         width: 95%;
         padding: 1.5rem;
+    }
+
+    .admin-tabs-container {
+        grid-template-columns: 1fr;
     }
 }
 
