@@ -12,11 +12,23 @@ let currentComplaints = []; // Store complaints for admin view
 let currentUserComplaints = []; // Store user's complaints
 let currentComplaintTab = 'active'; // 'active' or 'resolved'
 
+// Loading Helper Functions
+function showLoading() {
+    const loader = document.getElementById('globalLoader');
+    if(loader) loader.classList.remove('hidden');
+}
+
+function hideLoading() {
+    const loader = document.getElementById('globalLoader');
+    if(loader) loader.classList.add('hidden');
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     updateUserUI();
     setupAdminModal();
+    displayRecentTokens();
 });
 
 // ============= EVENT LISTENERS =============
@@ -86,13 +98,21 @@ async function submitComplaint(e) {
         return;
     }
 
+    let description = document.getElementById('description').value;
+    const referenceToken = document.getElementById('referenceToken').value.trim();
+
+    if (referenceToken) {
+        description += `\n\n[Reference to Previous Complaint: ${referenceToken}]`;
+    }
+
     const formData = {
         subject: document.getElementById('subject').value,
-        description: document.getElementById('description').value,
+        description: description,
         status: 'pending',
         created_at: new Date().toISOString()
     };
 
+    showLoading();
     try {
         const response = await fetch(`${API_BASE_URL}/complaints`, {
             method: 'POST',
@@ -108,18 +128,20 @@ async function submitComplaint(e) {
         if (response.ok) {
             showMessage(
                 `<strong>Success!</strong> Your complaint has been submitted.<br>
-                <strong>Your Complaint Token:</strong> <code style="background:#f0f0f0; padding:5px; border-radius:3px;">${data.token}</code><br>
+                <strong>Your Complaint Token:</strong> <code style="background:#f0f0f0; padding:5px; border-radius:3px;">${data.token}</code> <button onclick="copyToken('${data.token}')" class="btn-copy">📋</button><br>
                 <small>Save this token to track your complaint.</small>`,
                 'success'
             );
             document.getElementById('complaintForm').reset();
-            loadMyComplaints();
+            await loadMyComplaints();
         } else {
             showMessage('Error submitting complaint: ' + data.message, 'error');
         }
     } catch (error) {
         console.error('Error:', error);
         showMessage('Error submitting complaint. Please try again.', 'error');
+    } finally {
+        hideLoading();
     }
 }
 
@@ -132,11 +154,21 @@ async function trackComplaint() {
         return;
     }
 
+    showLoading();
     try {
         const response = await fetch(`${API_BASE_URL}/complaints/track/${token}`);
         const data = await response.json();
 
         if (response.ok) {
+            // Save to recent searches
+            let recentTokens = JSON.parse(localStorage.getItem('recentTokens') || '[]');
+            if (!recentTokens.includes(token)) {
+                recentTokens.unshift(token);
+                recentTokens = recentTokens.slice(0, 5); // Keep last 5
+                localStorage.setItem('recentTokens', JSON.stringify(recentTokens));
+            }
+            displayRecentTokens();
+            
             displayComplaintDetails(data);
         } else {
             alert('Complaint not found. Please check your token.');
@@ -145,15 +177,75 @@ async function trackComplaint() {
     } catch (error) {
         console.error('Error:', error);
         alert('Error tracking complaint. Please try again.');
+    } finally {
+        hideLoading();
     }
+}
+
+// Display recent tokens
+function displayRecentTokens() {
+    const recentTokens = JSON.parse(localStorage.getItem('recentTokens') || '[]');
+    const container = document.getElementById('recentTokensContainer');
+    if (!container) return;
+    
+    if (recentTokens.length > 0) {
+        let html = '<div style="margin-top: 10px; font-size: 0.9em; color: var(--light-text);">Recent Searches: ';
+        recentTokens.forEach(t => {
+            html += `<span class="recent-token-badge" onclick="document.getElementById('tokenInput').value='${t}'; trackComplaint()" style="cursor:pointer; margin-right:5px; background:var(--border-color); padding:4px 8px; border-radius:12px; display:inline-block; margin-bottom:5px;">${t}</span>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } else {
+        container.innerHTML = '';
+    }
+}
+
+// Copy token globally
+function copyToken(token) {
+    navigator.clipboard.writeText(token).then(() => {
+        alert('Token copied to clipboard!');
+    }).catch(err => {
+        console.error('Could not copy text: ', err);
+    });
+}
+
+// Download PDF
+function downloadComplaintPDF(elementId, token) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    const opt = {
+        margin:       0.5,
+        filename:     `Complaint_${token}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+// Copy full complaint details
+function copyComplaintDetails(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    // Format text nicely without the button text
+    let textToCopy = element.innerText;
+    textToCopy = textToCopy.replace(/📋/g, ''); // remove clipboard icons
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        alert('Complaint details copied to clipboard!');
+    }).catch(err => {
+        console.error('Could not copy text: ', err);
+        alert('Failed to copy details');
+    });
 }
 
 // Display complaint details
 function displayComplaintDetails(complaint) {
     const detailsHtml = `
+        <div id="pdf-content-${complaint.token}">
+        <h2 style="color:var(--primary-color); margin-bottom: 15px;">Complaint Record</h2>
         <div class="detail-item">
             <div class="detail-label">Token ID:</div>
-            <div class="detail-value"><strong>${complaint.token}</strong></div>
+            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">📋</button></div>
         </div>
         <div class="detail-item">
             <div class="detail-label">Name:</div>
@@ -191,6 +283,11 @@ function displayComplaintDetails(complaint) {
             <div class="detail-label">Submitted:</div>
             <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
         </div>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button onclick="downloadComplaintPDF('pdf-content-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center;">Download PDF</button>
+            <button onclick="copyComplaintDetails('pdf-content-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center;">Copy Details</button>
+        </div>
     `;
 
     document.getElementById('detailsContent').innerHTML = detailsHtml;
@@ -202,6 +299,7 @@ function displayComplaintDetails(complaint) {
 // Load my complaints
 async function loadMyComplaints() {
     if (!currentUserToken) return;
+    showLoading();
     try {
         const response = await fetch(`${API_BASE_URL}/complaints/me`, {
             headers: {
@@ -213,6 +311,8 @@ async function loadMyComplaints() {
         renderUserComplaints();
     } catch (error) {
         console.error('Error loading my complaints:', error);
+    } finally {
+        hideLoading();
     }
 }
 
@@ -235,7 +335,10 @@ function renderUserComplaints() {
                     <h4>${(complaint.subject || '').toUpperCase()}</h4>
                     <p>${complaint.description.substring(0, 100)}...</p>
                     <span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ').toUpperCase()}</span>
-                    <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #999;">Token: ${complaint.token}</p>
+                    <div style="margin-top: 1rem; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size: 0.85rem; color: #999;">Token: ${complaint.token}</span>
+                        <button onclick="copyToken('${complaint.token}'); event.stopPropagation();" class="btn-copy">📋</button>
+                    </div>
                 </div>
             `;
         });
@@ -248,9 +351,11 @@ function openUserComplaintModal(token) {
     if (!complaint) return;
 
     const detailsHtml = `
+        <div id="pdf-user-${complaint.token}">
+        <h2 style="color:var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">Complaint Record</h2>
         <div class="detail-item">
             <div class="detail-label">Token:</div>
-            <div class="detail-value"><strong>${complaint.token}</strong></div>
+            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">📋</button></div>
         </div>
         <div class="detail-item">
             <div class="detail-label">Subject:</div>
@@ -273,6 +378,11 @@ function openUserComplaintModal(token) {
         <div class="detail-item">
             <div class="detail-label">Submitted:</div>
             <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
+        </div>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button onclick="downloadComplaintPDF('pdf-user-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center;">Download PDF</button>
+            <button onclick="copyComplaintDetails('pdf-user-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center;">Copy Details</button>
         </div>
     `;
 
@@ -297,6 +407,7 @@ async function userLogin(e) {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     
+    showLoading();
     try {
         const res = await fetch(`${API_BASE_URL}/login`, {
             method: 'POST',
@@ -312,12 +423,14 @@ async function userLogin(e) {
             localStorage.setItem('user', JSON.stringify(currentUser));
             document.getElementById('userAuthModal').classList.remove('show');
             updateUserUI();
-            loadMyComplaints();
+            await loadMyComplaints();
         } else {
             document.getElementById('userAuthMessage').innerHTML = `<span style="color:red">${data.message}</span>`;
         }
     } catch (err) {
         document.getElementById('userAuthMessage').innerHTML = `<span style="color:red">Error logging in</span>`;
+    } finally {
+        hideLoading();
     }
 }
 
@@ -328,6 +441,7 @@ async function userRegister(e) {
     const phone = document.getElementById('regPhone').value;
     const password = document.getElementById('regPassword').value;
     
+    showLoading();
     try {
         const res = await fetch(`${API_BASE_URL}/register`, {
             method: 'POST',
@@ -344,10 +458,13 @@ async function userRegister(e) {
         }
     } catch (err) {
         document.getElementById('userAuthMessage').innerHTML = `<span style="color:red">Error registering</span>`;
+    } finally {
+        hideLoading();
     }
 }
 
 function userLogout() {
+    if(!confirm("Are you sure you want to logout?")) return;
     currentUserToken = null;
     currentUser = null;
     localStorage.removeItem('userToken');
@@ -363,6 +480,7 @@ function updateUserUI() {
     const submitBtn = document.getElementById('submitComplaintBtn');
     const submitWarning = document.getElementById('submitAuthWarning');
     const publicSection = document.getElementById('publicSection');
+    const adminBtn = document.getElementById('adminBtn');
     
     if (currentUser) {
         welcome.textContent = `Welcome, ${currentUser.name}`;
@@ -374,6 +492,7 @@ function updateUserUI() {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Complaint';
         submitWarning.classList.add('hidden');
+        if(adminBtn) adminBtn.classList.add('hidden');
     } else {
         welcome.classList.add('hidden');
         authBtn.classList.remove('hidden');
@@ -383,6 +502,7 @@ function updateUserUI() {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Login to Submit Complaint';
         submitWarning.classList.remove('hidden');
+        if(adminBtn) adminBtn.classList.remove('hidden');
     }
 }
 
@@ -436,6 +556,8 @@ async function adminLogin(e) {
 
     const adminId = document.getElementById('adminId').value;
     const adminPassword = document.getElementById('adminPassword').value;
+    
+    showLoading();
     try {
         const response = await fetch(`${API_BASE_URL}/admin/login`, {
             method: 'POST',
@@ -450,16 +572,19 @@ async function adminLogin(e) {
         if (!response.ok) {
             document.getElementById('adminMessage').textContent = data.message || 'Invalid credentials';
             document.getElementById('adminMessage').style.color = 'red';
+            hideLoading();
             return;
         }
 
         currentAdminToken = data.token;
         closeAdminModal();
         showAdminDashboard();
-        loadAdminComplaints();
+        await loadAdminComplaints();
     } catch (error) {
         document.getElementById('adminMessage').textContent = 'Login failed. Try again.';
         document.getElementById('adminMessage').style.color = 'red';
+    } finally {
+        hideLoading();
     }
 }
 
@@ -467,17 +592,23 @@ async function adminLogin(e) {
 function showAdminDashboard() {
     document.querySelector('.main-container').classList.add('hidden');
     document.getElementById('adminDashboard').classList.remove('hidden');
+    // Hide standard navbar buttons
+    document.getElementById('userAuthBtn').classList.add('hidden');
+    document.getElementById('adminBtn').classList.add('hidden');
 }
 
 // Admin logout
 function adminLogout() {
+    if(!confirm("Are you sure you want to exit the admin dashboard?")) return;
     currentAdminToken = null;
     document.getElementById('adminDashboard').classList.add('hidden');
     document.querySelector('.main-container').classList.remove('hidden');
+    updateUserUI(); // Restore button visibility based on user login state
 }
 
 // Load all complaints for admin
 async function loadAdminComplaints() {
+    showLoading();
     try {
         const response = await fetch(`${API_BASE_URL}/admin/complaints`, {
             headers: {
@@ -512,7 +643,7 @@ async function loadAdminComplaints() {
         complaints.forEach(complaint => {
             tableHtml += `
                 <tr>
-                    <td><strong>${complaint.token}</strong></td>
+                    <td><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">📋</button></td>
                     <td>${complaint.name}</td>
                     <td>${complaint.subject || ''}</td>
                     <td><span class="status-badge status-${complaint.status}">${complaint.status.replace('_', ' ')}</span></td>
@@ -531,6 +662,8 @@ async function loadAdminComplaints() {
         document.getElementById('adminComplaintsTable').innerHTML = tableHtml;
     } catch (error) {
         console.error('Error loading admin complaints:', error);
+    } finally {
+        hideLoading();
     }
 }
 
@@ -548,9 +681,11 @@ function openViewModal(complaintId) {
     if (!complaint) return;
 
     const detailsHtml = `
+        <div id="pdf-admin-${complaint.token}">
+        <h2 style="color:var(--primary-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">Complaint Record</h2>
         <div class="detail-item">
             <div class="detail-label">Token:</div>
-            <div class="detail-value"><strong>${complaint.token}</strong></div>
+            <div class="detail-value"><strong>${complaint.token}</strong> <button onclick="copyToken('${complaint.token}')" class="btn-copy">📋</button></div>
         </div>
         <div class="detail-item">
             <div class="detail-label">Name:</div>
@@ -586,6 +721,11 @@ function openViewModal(complaintId) {
             <div class="detail-label">Submitted:</div>
             <div class="detail-value">${new Date(complaint.created_at).toLocaleString()}</div>
         </div>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button onclick="downloadComplaintPDF('pdf-admin-${complaint.token}', '${complaint.token}')" class="btn-primary" style="flex: 1; text-align: center;">Download PDF</button>
+            <button onclick="copyComplaintDetails('pdf-admin-${complaint.token}')" class="btn-primary" style="flex: 1; background: var(--secondary-color); text-align: center;">Copy Details</button>
+        </div>
     `;
 
     document.getElementById('viewDetailsContent').innerHTML = detailsHtml;
@@ -610,11 +750,14 @@ document.addEventListener('DOMContentLoaded', () => {
         editForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            if(!confirm("Are you sure you want to update this complaint?")) return;
+
             const updateData = {
                 status: document.getElementById('editStatus').value,
                 reply: document.getElementById('editReply').value
             };
 
+            showLoading();
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/complaints/${currentEditingComplaintId}`, {
                     method: 'PUT',
@@ -628,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     alert('Complaint updated successfully');
                     closeEditModal();
-                    loadAdminComplaints();
+                    await loadAdminComplaints();
                 } else {
                     const data = await response.json();
                     alert(data.message || 'Error updating complaint');
@@ -636,6 +779,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error updating complaint');
+            } finally {
+                hideLoading();
             }
         });
     }
@@ -643,7 +788,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Delete complaint
 async function deleteComplaint(complaintId) {
-    if (confirm('Are you sure you want to delete this complaint?')) {
+    if (confirm('Are you sure you want to delete this complaint? This action cannot be undone.')) {
+        showLoading();
         try {
             const response = await fetch(`${API_BASE_URL}/admin/complaints/${complaintId}`, {
                 method: 'DELETE',
@@ -654,7 +800,7 @@ async function deleteComplaint(complaintId) {
 
             if (response.ok) {
                 alert('Complaint deleted successfully');
-                loadAdminComplaints();
+                await loadAdminComplaints();
             } else {
                 const data = await response.json();
                 alert(data.message || 'Error deleting complaint');
@@ -662,6 +808,8 @@ async function deleteComplaint(complaintId) {
         } catch (error) {
             console.error('Error:', error);
             alert('Error deleting complaint');
+        } finally {
+            hideLoading();
         }
     }
 }

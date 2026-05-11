@@ -11,7 +11,8 @@ def run_test():
     reg_data = {
         "name": "Test User",
         "email": email,
-        "password": "password123"
+        "password": "password123",
+        "phone": "1234567890"
     }
     r = requests.post(f"{BASE_URL}/register", json=reg_data)
     print(f"Register status: {r.status_code}")

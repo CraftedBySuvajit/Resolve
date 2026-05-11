@@ -590,7 +590,8 @@ body {
 
 .btn-view,
 .btn-edit,
-.btn-delete {
+.btn-delete,
+.btn-copy {
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 5px;
@@ -598,6 +599,19 @@ body {
     font-size: 0.85rem;
     font-weight: 600;
     transition: all 0.3s ease;
+}
+
+.btn-copy {
+    background-color: var(--light-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.2rem 0.5rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+.btn-copy:hover {
+    background-color: #e2e8f0;
 }
 
 .btn-view {
@@ -641,7 +655,35 @@ body {
 
 /* Hidden Class */
 .hidden {
-    display: none;
+    display: none !important;
+}
+
+/* Global Loader */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(3px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 /* Responsive Design - Tablet */

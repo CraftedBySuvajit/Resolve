@@ -14,6 +14,10 @@
 </head>
 
 <body>
+    <!-- Global Loader -->
+    <div id="globalLoader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+    </div>
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="container">
@@ -99,6 +103,10 @@
                     <textarea id="description" rows="5" placeholder="e.g. Descibe your problem in details"
                         required></textarea>
                 </div>
+                <div class="form-group">
+                    <label for="referenceToken">Reference Old Token ID (Optional)</label>
+                    <input type="text" id="referenceToken" placeholder="e.g. TKN-20260511-1234">
+                </div>
                 <button type="submit" id="submitComplaintBtn" class="btn-primary" disabled>Login to Submit
                     Complaint</button>
             </form>
@@ -123,6 +131,7 @@
                 <input type="text" id="tokenInput" placeholder="Enter your complaint token" maxlength="20">
                 <button onclick="trackComplaint()" class="btn-primary">Track</button>
             </div>
+            <div id="recentTokensContainer" class="recent-tokens"></div>
             <div id="complaintDetails" class="complaint-details hidden">
                 <h3>Complaint Details</h3>
                 <div id="detailsContent"></div>
@@ -136,7 +145,7 @@
     <div id="adminDashboard" class="admin-section hidden">
         <div class="container">
             <div class="admin-header">
-                <h2>Admin Dashboard</h2>
+                <h2>Welcome, Aishwaryya (Admin)</h2>
                 <button onclick="adminLogout()" class="btn-logout">Logout</button>
             </div>
 
@@ -201,14 +210,16 @@
                 </div>
             </div>
 
-            <!-- View Complaint Modal -->
-            <div id="viewModal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="closeViewModal()">&times;</span>
-                    <h2>Complaint Details</h2>
-                    <div id="viewDetailsContent"></div>
-                </div>
-            </div>
+            <!-- View Complaint Modal was here -->
+        </div>
+    </div>
+
+    <!-- View Complaint Modal (Moved outside for global access) -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeViewModal()">&times;</span>
+            <h2>Complaint Details</h2>
+            <div id="viewDetailsContent"></div>
         </div>
     </div>
 
@@ -217,6 +228,8 @@
         <p>&copy; 2026 Complaint Management System. All rights reserved.</p>
     </footer>
 
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
 
